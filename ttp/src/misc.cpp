@@ -26,6 +26,7 @@ void extract_data_from_file( const std::string& filename,
                              int& number_variables,
                              std::vector< std::vector<double> >& matrix_distances )
 {
+    matrix_distances.clear();
 	if( filename != "" )
 	{		
 		std::ifstream instance_file( filename );
@@ -444,7 +445,7 @@ void check_best_solution(Individual& best_individual, std::vector<Individual> po
 
 }
 
-void save_statistics_csv(const std::string& filename, std::vector<double> vec_cost, std::vector<int>& vec_costraint, std::vector<double>& vec_best_cost, std::vector<double>& vec_best_fitness, std::vector<int>& vec_best_constraint, std::vector<int>& vec_feasible_solutions, std::vector<double>& vec_total_mi, std::vector<double>& vec_entropy, std::vector<int>& vec_duplicated_solutions)
+void save_statistics_csv(const std::string& filename, std::vector<int> vec_evaluation, std::vector<double> vec_cost, std::vector<int>& vec_costraint, std::vector<double>& vec_best_cost, std::vector<double>& vec_best_fitness, std::vector<int>& vec_best_constraint, std::vector<int>& vec_feasible_solutions, std::vector<double>& vec_total_mi, std::vector<double>& vec_entropy, std::vector<int>& vec_duplicated_solutions)
 {
 
     std::filesystem::path filepath(filename);
@@ -453,12 +454,12 @@ void save_statistics_csv(const std::string& filename, std::vector<double> vec_co
 
     std::ofstream file(filename);
 
-    file << "generation,cost,constraint,best_cost,best_fitness,less_constraint,feasible_solutions, mi_total, entropy, duplicated_solutions\n";
+    file << "generation,evaluation,cost,constraint,best_cost,best_fitness,less_constraint,feasible_solutions, mi_total, entropy, duplicated_solutions\n";
 
     int n = vec_cost.size();
 
     for (int i = 0; i < n; ++i) {
-        file << i << "," << vec_cost[i] << "," << vec_costraint[i] << "," << vec_best_cost[i] << "," << vec_best_fitness[i] << "," << vec_best_constraint[i] << "," << vec_feasible_solutions[i] << "," << vec_total_mi[i] << "," << vec_entropy[i] << "," << vec_duplicated_solutions[i] << "\n";
+        file << i << "," << vec_evaluation[i] << "," << vec_cost[i] << "," << vec_costraint[i] << "," << vec_best_cost[i] << "," << vec_best_fitness[i] << "," << vec_best_constraint[i] << "," << vec_feasible_solutions[i] << "," << vec_total_mi[i] << "," << vec_entropy[i] << "," << vec_duplicated_solutions[i] << "\n";
     }
 
 }

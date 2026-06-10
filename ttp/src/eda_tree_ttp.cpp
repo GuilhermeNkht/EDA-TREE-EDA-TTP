@@ -11,24 +11,11 @@
 
 using namespace std::chrono_literals;
 
-eda_tree_ttp::eda_tree_ttp(int id_thread, int seed, const std::string& filename_csv, int penalization_value, int n_teams, const std::vector<std::vector<int>> initial_population, double elite_rate, double survivor_rate, int max_generation, const std::vector<std::vector<double>>& distance_matrix, int n_cores, double ls_probability) : _filename_csv(filename_csv + ".csv"), _penalization_value(penalization_value), _n_teams(n_teams), _initial_population(initial_population), _elite_rate(elite_rate), _survivor_rate(survivor_rate), _max_generation(max_generation), _distance_matrix(distance_matrix), _n_cores(n_cores), _ls_probability(ls_probability)
+eda_tree_ttp::eda_tree_ttp(int id_thread, int seed, const std::string& filename_csv, int n_teams, const std::vector<std::vector<int>> initial_population, double elite_rate, double retained_rate, int max_evaluation, const std::vector<std::vector<double>>& distance_matrix, double intensity_penalization) : _filename_csv(filename_csv + ".csv"), _n_teams(n_teams), _initial_population(initial_population), _elite_rate(elite_rate), _retained_rate(retained_rate), _max_evaluation(max_evaluation), _distance_matrix(distance_matrix), _intensity_penalization(intensity_penalization)
 {    
     _n_matches = n_teams * (n_teams - 1);
     _n_slots = 2 * (n_teams - 1);
     rng.seed(seed + id_thread);
-
-    for (const auto& sol : initial_population) {
-        Individual ind;
-        ind.sol = sol;
-        ind.cost = check_cost_solution(sol, _n_teams, _distance_matrix);
-        ind.constraint = check_error_solution(sol, _n_teams);
-        ind.fitness = ind.cost + _penalization_value * ind.constraint;
-        _population.push_back(ind);
-    }
-
-    _n_elite = std::max(1,int(_elite_rate * _population.size()));
-    _n_survive = std::max(1,int(_survivor_rate * _n_elite));
-    _n_population_size = _population.size();
 
     _upper_bound = 0;
 
@@ -40,12 +27,26 @@ eda_tree_ttp::eda_tree_ttp(int id_thread, int seed, const std::string& filename_
 
     _penalization_value = _upper_bound;
 
+    for (const auto& sol : initial_population) {
+        Individual ind;
+        ind.sol = sol;
+        ind.cost = check_cost_solution(sol, _n_teams, _distance_matrix);
+        ind.constraint = check_error_solution(sol, _n_teams);
+        ind.fitness = ind.cost + _intensity_penalization * _penalization_value * ind.constraint;
+        _population.push_back(ind);
+    }
+
+    _n_elite = std::max(1,int(_elite_rate * _population.size()));
+    _n_survive = std::max(1,int(_retained_rate * _n_elite));
+    _n_population_size = _population.size();
+
 }
 
-void eda_tree_ttp::run_boa(bool local_search, bool penalization, std::chrono::microseconds timeout_ls)
+void eda_tree_ttp::run_eda_tree()
 {
-    int generation = 0;
+    int evaluation = _n_population_size;
 
+    std::vector<int> vec_evaluation;
     std::vector<double> vec_cost;
     std::vector<int> vec_costraint;
     std::vector<double> vec_best_cost;
@@ -55,29 +56,10 @@ void eda_tree_ttp::run_boa(bool local_search, bool penalization, std::chrono::mi
     std::vector<double> vec_total_mi;
     std::vector<double> vec_entropy;
     std::vector<int> vec_duplicated_solutions;
-    std::vector<double> vec_fitness_before_ls;
-    std::vector<double> vec_fitness_after_ls;
-    std::vector<double> vec_mean_improvement_ls;
 
     Individual best_individual = _population[0];
 
-    std::shared_ptr<ghost::Print> printer = std::make_shared<PrintTTP>();
-    ghost::Options options;
-    options.print = printer;
-    options.number_start_samplings = _n_teams * _n_teams;
-    options.enable_optimization_guidance = false;
-    options.max_moves_in_opt_space = 2;
-    options.custom_starting_point = true;
-    if(_n_cores > 1){
-        options.parallel_runs = true;
-        options.number_threads = _n_cores;
-    }
-
-    BuilderTTP builder(_n_teams, _distance_matrix, {});
-    ghost::Solver solver(builder);
-
-    while (generation < _max_generation) {
-
+    while (evaluation < _max_evaluation) {
         select_elite();
 
         auto new_population = select_survivors();
@@ -88,49 +70,18 @@ void eda_tree_ttp::run_boa(bool local_search, bool penalization, std::chrono::mi
 
         build_probabilities(parent);
 
-        double sum_after_ls = 0;
-        double sum_before_ls = 0;
-        double sum_improvement = 0;
-        int count_ls = 0;
-
         while(new_population.size() < _n_population_size){
 
             Individual new_ind;
             auto child = sample_individual(parent);
 
-            bool generation_ls = (generation % 50 == 0);
-
-            bool apply_ls = local_search && generation_ls && (std::uniform_real_distribution<double>(0.0,1.0)(rng) < _ls_probability);
-
-            if(apply_ls){
-                std::vector<int> solution;
-                double cost = 0.0;
-                count_ls++;
-                
-                double before_ls = check_cost_solution(child, _n_teams, _distance_matrix) + _penalization_value * check_error_solution(child, _n_teams);
-                sum_before_ls += before_ls;
-
-                builder.reinitialize_solution(child);
-                solver.fast_search(cost, solution, timeout_ls, options);
-
-                new_ind.sol = solution;
-                new_ind.cost = cost;
-                new_ind.constraint = check_error_solution(solution, _n_teams);
-                new_ind.fitness = new_ind.cost + _penalization_value * new_ind.constraint;
-
-                sum_after_ls += new_ind.fitness;
-
-                sum_improvement += before_ls - sum_before_ls;
-            }
-            else{
-                new_ind.sol = child;
-                new_ind.cost = check_cost_solution(child, _n_teams, _distance_matrix);
-                new_ind.constraint = check_error_solution(child, _n_teams);
-                new_ind.fitness = new_ind.cost + _penalization_value * new_ind.constraint;
-            }
-            
+            new_ind.sol = child;
+            new_ind.cost = check_cost_solution(child, _n_teams, _distance_matrix);
+            new_ind.constraint = check_error_solution(child, _n_teams);
+            new_ind.fitness = new_ind.cost + _intensity_penalization * _penalization_value * new_ind.constraint;
 
             new_population.push_back(new_ind);
+            evaluation++;
         }
 
         _population = new_population;
@@ -142,6 +93,7 @@ void eda_tree_ttp::run_boa(bool local_search, bool penalization, std::chrono::mi
 
         check_best_solution(best_individual, _population);
 
+        vec_evaluation.push_back(evaluation);
         vec_cost.push_back(mean_value(cost.first, _n_population_size));
         vec_costraint.push_back(mean_value(constraint.first, _n_population_size));
         vec_best_cost.push_back(best_individual.cost);
@@ -151,14 +103,10 @@ void eda_tree_ttp::run_boa(bool local_search, bool penalization, std::chrono::mi
         vec_total_mi.push_back(total_mi);
         vec_entropy.push_back(mean_entropy);
         vec_duplicated_solutions.push_back(check_duplicate_solutions(_population));
-        vec_fitness_before_ls.push_back(mean_value(sum_before_ls, count_ls));
-        vec_fitness_after_ls.push_back(mean_value(sum_after_ls, count_ls));
-        vec_mean_improvement_ls.push_back(mean_value(sum_improvement, count_ls));
 
-        generation++;
     }
 
-    save_statistics_csv(_filename_csv, vec_cost, vec_costraint, vec_best_cost, vec_best_fitness, vec_best_constraint, vec_feasible_solutions, vec_total_mi, vec_entropy, vec_duplicated_solutions);
+    save_statistics_csv(_filename_csv, vec_evaluation, vec_cost, vec_costraint, vec_best_cost, vec_best_fitness, vec_best_constraint, vec_feasible_solutions, vec_total_mi, vec_entropy, vec_duplicated_solutions);
 
 }
 

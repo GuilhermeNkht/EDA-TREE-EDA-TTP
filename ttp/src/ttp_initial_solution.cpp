@@ -138,6 +138,7 @@ std::vector<std::vector<int>> ttp_initial_solution::generateAlternatingMethod(in
         solutions.push_back(p.second);
 
     return solutions;
+    
 }
 
 

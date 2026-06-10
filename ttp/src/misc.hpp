@@ -36,4 +36,4 @@ int count_feasible_solution(std::vector<Individual> population);
 
 void check_best_solution(Individual& best_individual, std::vector<Individual> population);
 
-void save_statistics_csv(const std::string& filename, std::vector<double> vec_cost, std::vector<int>& vec_costraint, std::vector<double>& vec_best_cost, std::vector<double>& vec_best_fitness, std::vector<int>& vec_best_constraint, std::vector<int>& vec_feasible_solutions, std::vector<double>& vec_total_mi, std::vector<double>& vec_entropy, std::vector<int>& vec_duplicated_solutions);
+void save_statistics_csv(const std::string& filename, std::vector<int> vec_evaluation, std::vector<double> vec_cost, std::vector<int>& vec_costraint, std::vector<double>& vec_best_cost, std::vector<double>& vec_best_fitness, std::vector<int>& vec_best_constraint, std::vector<int>& vec_feasible_solutions, std::vector<double>& vec_total_mi, std::vector<double>& vec_entropy, std::vector<int>& vec_duplicated_solutions);

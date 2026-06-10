@@ -7,10 +7,11 @@
 
 class eda_ttp {
     public:
-        eda_ttp(int id_thread, int seed, const std::string& filename_csv, int penalization_value, int n_teams, const std::vector<std::vector<int>> initial_population, double elite_rate, double survivor_rate, int max_evaluations, const std::vector<std::vector<double>>& distance_matrix, int n_cores, double ls_probability);
+        eda_ttp(int id_thread, int seed, const std::string& filename_csv, int n_teams, const std::vector<std::vector<int>> initial_population, double elite_rate, double survivor_rate, int max_evaluations, const std::vector<std::vector<double>>& distance_matrix, double intensity_penalization);
 
+        void print_parameters();
         void initializePolygon();
-        void run_eda(bool local_search, bool penalization, bool eda, std::chrono::microseconds timeout_ls);
+        void run_eda();
 
     private:
         std::string _filename_csv;
@@ -19,9 +20,10 @@ class eda_ttp {
         const std::vector<std::vector<int>>& _initial_population;
         std::vector<Individual> _population;
         double _elite_rate;
-        double _survivor_rate;
-        int _max_generation;
+        double _retained_rate;
+        int _max_evaluation;
         const std::vector<std::vector<double>> _distance_matrix;
+        double _intensity_penalization;
 
         int _n_slots;
         int _n_matches;

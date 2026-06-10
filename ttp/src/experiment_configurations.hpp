@@ -8,8 +8,8 @@ struct ExperimentConfig {
     int penalization_value = 1000;
     int cores = -1;
     double elite_rate = 0.5;
-    double survivor_rate = 0.5;
-    int max_generation = 5000;
+    double retained_rate = 0.5;
+    int max_evaluations = 5000;
     int n_population = 1000;
     std::chrono::microseconds timeout_ls = std::chrono::microseconds(1000000);
     bool local_search = true;
