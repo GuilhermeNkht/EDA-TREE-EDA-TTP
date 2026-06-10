@@ -1,10 +1,10 @@
-# Feasible and Infeasible Initialization in Estimation of Distribution Algorithms for the Traveling Tournament Problem
+# When Feasible Solutions Become a Trap: Initialization Strategies for EDAs in the Traveling Tournament Problem
 
 This repository contains the code and materials for our paper.
 
 ## Abstract
 
-In constrained optimization, the way an algorithm is initialized can impact its behavior. In Estimation of Distribution Algorithms (EDAs), using fully feasible, partially feasible, or infeasible initial solutions affects both diversity and convergence. In this work, we analyzed this effect on the Traveling Tournament Problem (TTP) via computational experiments on NL benchmark instances evaluating overall performance, constraint violations, and population diversity. Our results show that starting from fully feasible solutions often limits exploration and leads to early convergence, in contrast, infeasible or partially feasible solutions allow the algorithm to explore the search space more, while local search is then needed to recover feasibility. Local search not only repairs solutions but can also introduce new diversity in the population, helping the loss of entropy during convergence. Initialization strongly affects EDA performance and shapes the function of local search, particularly in highly constrained problems.
+The Traveling Tournament Problem (TTP) is a highly constrained scheduling problem in which obtaining feasible and good-quality schedules remains difficult for optimization methods. In this work, we study how initialization and feasibility influence the behavior of a Univariate EDA and a Tree-based EDA. Experiments were conducted using feasible, partially feasible, and infeasible initial solutions under different penalty intensities, and the behavior of local search was also investigated. Initialization had a stronger influence on the search process than the penalty intensity. Most of the improvements observed in the hybrid approaches originate from the local search component, particularly for the larger benchmark instances. In summary, the results provide evidence that learning effective probabilistic models for highly constrained scheduling problems remains challenging, and help clarify the importance of initialization and local search in this process.
 
 ___
 
@@ -19,7 +19,7 @@ The Traveling Tournament Problem (TTP) schedules a double round-robin tournament
 <div align="center">
 <b>Example:</b><br>
 <img src="Images/Constraints.png" alt="Traveling Tournament Problem (TTP)" width="400"/><br>
-<i>Figure 1:</i> An example of a valid TTP instance. The rows indicate slots, while the columns indicate the matches of each team. The airplane/house icon indicates an "away" or "home" game, respectively. Here, we consider k = 2 for the maxStreak constraint.
+<i>Figure 1:</i> An example of infeasible TTP instance. The rows indicate slots, while the columns indicate the matches of each team. The airplane/house icon indicates an "away" or "home" game, respectively. Here, we consider k = 2 for the maxStreak constraint.
 </div>
 
 ---
