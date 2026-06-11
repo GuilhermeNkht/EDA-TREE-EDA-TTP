@@ -1,6 +1,6 @@
 # When Feasible Solutions Become a Trap: Initialization Strategies for EDAs in the Traveling Tournament Problem
 
-This repository contains the code and materials for our paper. The results can be found here: [View Results](https://drive.google.com/file/d/1xsrR3IH-p38Msbbtn-6Msb7kYA94Apjs/view?usp=sharing)
+This repository contains the code and materials for our paper. The results can be found here: [View Results](https://drive.google.com/file/d/1LLWg4qUFGwb1ylFEM-U4Ogh8GwiNXDzM/view?usp=drive_link)
 
 ## Abstract
 
